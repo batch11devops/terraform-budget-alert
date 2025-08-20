@@ -2,22 +2,24 @@ pipeline {
     agent any
 
     environment {
-        ARM_SUBSCRIPTION_ID = credentials('ARM_SUBSCRIPTION_ID')   
-        ARM_CLIENT_ID       = credentials('ARM_CLIENT_ID')
-        ARM_CLIENT_SECRET   = credentials('ARM_CLIENT_SECRET')
-        ARM_TENANT_ID       = credentials('ARM_TENANT_ID')
+        ARM_TENANT_ID     = credentials('ARM_TENANT_ID')
+        ARM_SUBSCRIPTION_ID = credentials('ARM_SUBSCRIPTION_ID')
+        ARM_CLIENT_ID     = credentials('ARM_CLIENT_ID')
+        ARM_CLIENT_SECRET = credentials('ARM_CLIENT_SECRET')
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/batch11devops/terraform-budget-alert.git'
+                git branch: 'main',
+                    url: 'https://github.com/batch11devops/terraform-budget-alert.git',
+                    credentialsId: 'github-credential'
             }
         }
 
         stage('Terraform Init') {
             steps {
-                sh 'terraform init'
+                sh 'terraform init -reconfigure'
             }
         }
 
@@ -29,38 +31,23 @@ pipeline {
 
         stage('Terraform Plan') {
             steps {
-                sh """
-                  terraform plan \
-                  -var "subscription_id=/subscriptions/${ARM_SUBSCRIPTION_ID}" \
-                  -var "client_id=${ARM_CLIENT_ID}" \
-                  -var "client_secret=${ARM_CLIENT_SECRET}" \
-                  -var "tenant_id=${ARM_TENANT_ID}"
-                """
+                sh 'terraform plan -out=tfplan'
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                sh """
-                  terraform apply -auto-approve \
-                  -var "subscription_id=/subscriptions/${ARM_SUBSCRIPTION_ID}" \
-                  -var "client_id=${ARM_CLIENT_ID}" \
-                  -var "client_secret=${ARM_CLIENT_SECRET}" \
-                  -var "tenant_id=${ARM_TENANT_ID}"
-                """
+                input message: 'Do you want to apply the changes?', ok: 'Apply'
+                sh 'terraform apply -auto-approve tfplan'
             }
         }
 
         stage('Terraform Destroy') {
             steps {
-                sh """
-                  terraform destroy -auto-approve \
-                  -var "subscription_id=/subscriptions/${ARM_SUBSCRIPTION_ID}" \
-                  -var "client_id=${ARM_CLIENT_ID}" \
-                  -var "client_secret=${ARM_CLIENT_SECRET}" \
-                  -var "tenant_id=${ARM_TENANT_ID}"
-                """
+                input message: 'Do you want to destroy the infrastructure?', ok: 'Destroy'
+                sh 'terraform destroy -auto-approve'
             }
         }
     }
 }
+
