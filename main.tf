@@ -1,82 +1,51 @@
-# --------------------
-# Resource Group
-# --------------------
+# Create Resource Group
 resource "azurerm_resource_group" "rg" {
-  name     = "rg-vmss-raksha"
-  location = "Canada Central"
+  name     = var.resource_group_name
+  location = var.location
 }
 
-# --------------------
-# Virtual Network + Subnet
-# --------------------
-resource "azurerm_virtual_network" "vnet" {
-  name                = "vnet-demo"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "subnet" {
-  name                 = "subnet-demo"
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
-
-# --------------------
-# VM Scale Set
-# --------------------
+# Create a VM Scale Set (just sample infra)
 resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
-  name                = "vmss-demo"
-  location            = azurerm_resource_group.rg.location
+  name                = "vmss-budget-raksha"
   resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
   sku                 = "Standard_DS1_v2"
-  instances           = 2
+  instances           = 1
   admin_username      = "azureuser"
-  admin_password      = "Rks@3007"   
+
+  admin_password = "Rks@3007"
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 
   os_disk {
-    caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
-  }
-
-  network_interface {
-    name    = "vmss-nic"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.subnet.id
-    }
+    caching              = "ReadWrite"
   }
 }
 
-# --------------------
-# Budget Alert
-# --------------------
-resource "azurerm_consumption_budget_subscription" "budget" {
-  name            = "budget-vmss-demo"
-  subscription_id = var.subscription_id
-  amount          = 50
-  time_grain      = "Monthly"
+# Create a Budget for the Resource Group
+resource "azurerm_consumption_budget_resource_group" "budget" {
+  name              = "vmss-budget-alert"
+  resource_group_id = azurerm_resource_group.rg.id
+  amount            = 50
+  time_grain        = "Monthly"
 
   time_period {
     start_date = "2025-08-01T00:00:00Z"
-    end_date   = "2025-12-31T00:00:00Z"
+    end_date   = "2026-08-01T00:00:00Z"
   }
 
   notification {
-    enabled        = true
-    threshold      = 80.0
-    operator       = "GreaterThan"
-    contact_emails = ["rakshajshetty1999@example.com"]
+    enabled   = true
+    threshold = 80.0
+    operator  = "GreaterThan"
+    contact_emails = [
+      "your-email@example.com"
+    ]
   }
 }
