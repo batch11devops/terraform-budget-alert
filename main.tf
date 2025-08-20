@@ -1,6 +1,6 @@
 resource "azurerm_resource_group" "rg" {
   name     = "budget-alert-raksha"
-  location = "East US"
+  location = "Canada Central"
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
