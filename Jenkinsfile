@@ -17,7 +17,13 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                sh 'terraform init'
+                sh 'terraform init -upgrade'
+            }
+        }
+
+        stage('Terraform Validate') {
+            steps {
+                sh 'terraform validate'
             }
         }
 
@@ -46,6 +52,9 @@ pipeline {
         }
 
         stage('Terraform Destroy') {
+            when {
+                expression { return params.DESTROY == true }
+            }
             steps {
                 sh '''
                   terraform destroy -auto-approve \
@@ -57,5 +66,15 @@ pipeline {
             }
         }
     }
-}
 
+    parameters {
+        booleanParam(name: 'DESTROY', defaultValue: false, description: 'Set true if you want to run terraform destroy')
+    }
+
+    post {
+        always {
+            echo "Pipeline finished. Cleaning up workspace."
+            cleanWs()
+        }
+    }
+}
