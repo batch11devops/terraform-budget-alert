@@ -1,19 +1,18 @@
-# Create Resource Group
+# Resource Group
 resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
   location = var.location
 }
 
-# Create a VM Scale Set (just sample infra)
+# VM Scale Set
 resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
-  name                = "vmss-budget-raksha"
+  name                = var.vmss_name
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   sku                 = "Standard_DS1_v2"
-  instances           = 1
-  admin_username      = "azureuser"
-
-  admin_password = "Rks@3007"
+  instances           = var.vmss_instances
+  admin_username      = var.admin_username
+  admin_password      = var.admin_password
 
   source_image_reference {
     publisher = "Canonical"
@@ -28,24 +27,22 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss" {
   }
 }
 
-# Create a Budget for the Resource Group
+# Budget Alert
 resource "azurerm_consumption_budget_resource_group" "budget" {
   name              = "vmss-budget-alert"
   resource_group_id = azurerm_resource_group.rg.id
-  amount            = 50
+  amount            = var.budget_amount
   time_grain        = "Monthly"
 
   time_period {
-    start_date = "2025-08-01T00:00:00Z"
-    end_date   = "2026-08-01T00:00:00Z"
+    start_date = var.budget_start_date
+    end_date   = var.budget_end_date
   }
 
   notification {
-    enabled   = true
-    threshold = 80.0
-    operator  = "GreaterThan"
-    contact_emails = [
-      "your-email@example.com"
-    ]
+    enabled        = true
+    threshold      = var.budget_threshold
+    operator       = "GreaterThan"
+    contact_emails = var.budget_emails
   }
 }
