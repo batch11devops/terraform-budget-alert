@@ -12,7 +12,7 @@ variable "resource_group_name" {
 }
 variable "location" {
   type    = string
-  default = "Japan East"
+  default = "Japan West"
 }
 
 # ---- Networking ----
