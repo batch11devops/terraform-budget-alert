@@ -16,6 +16,6 @@ admin_username  = "azureuser"
 budget_name       = "vmss-budget-alert"
 budget_amount     = 50
 budget_threshold  = 80.0
-budget_emails     = ["rakshashetty@example.com"]
+budget_emails     = ["rakshajshetty1999@gmail.com"]
 budget_start_date = "2025-08-01T00:00:00Z"
 budget_end_date   = "2026-08-01T00:00:00Z"
