@@ -1,6 +1,6 @@
 # Resource Group
 resource_group_name = "rg-vmss-budget"
-location            = "Japan West"
+location            = "Japan East"
 
 # Networking
 vnet_cidr   = "10.0.0.0/16"
